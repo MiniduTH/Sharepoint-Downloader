@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Video Manifest Capture</title>
+  <link rel="stylesheet" href="popup.css">
+  <!-- Optional: Add Font Awesome for icons (uncomment if using) -->
+  <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> -->
+</head>
+<body>
+  <div class="container">
+    <h1 class="title">Video Manifest Capture</h1>
+    
+    <button id="refresh" class="btn primary">
+      <i class="fas fa-refresh"></i> Refresh
+    </button>
+
+    <div class="card">
+      <h2>Manifest Details</h2>
+      <div class="manifest-section">
+        <label>Cleaned URL:</label>
+        <div class="text-container">
+          <p id="manifestUrl" class="text">No manifest captured yet.</p>
+        </div>
+        <button id="toggleUrl" class="btn toggle">Expand</button>
+      </div>
+      
+      <div class="options-section">
+        <label>Quality:</label>
+        <select id="quality" class="select">
+          <option value="best">Best</option>
+          <option value="1080p">1080p</option>
+          <option value="720p">720p</option>
+          <option value="480p">480p</option>
+        </select>
+        
+        <label>Format:</label>
+        <select id="format" class="select">
+          <option value="mp4">MP4</option>
+          <option value="mkv">MKV</option>
+          <option value="ts">TS</option>
+        </select>
+        
+        <label>Output Filename:</label>
+        <input id="filename" type="text" class="input" placeholder="video_YYYYMMDD_HHMMSS">
+      </div>
+
+      <div class="manifest-section">
+        <label>FFmpeg Command:</label>
+        <div class="text-container">
+          <p id="ffmpegCommand" class="text">FFmpeg command will appear here.</p>
+        </div>
+        <button id="toggleFffmpeg" class="btn toggle">Expand</button>
+        <button id="copyFffmpegBtn" class="btn secondary small">
+          <i class="fas fa-copy"></i> Copy FFmpeg
+        </button>
+      </div>
+
+      <div class="manifest-section">
+        <label>yt-dlp Command:</label>
+        <div class="text-container">
+          <p id="ytdlpCommand" class="text">yt-dlp command will appear here.</p>
+        </div>
+        <button id="toggleYtdlp" class="btn toggle">Expand</button>
+        <button id="copyYtdlpBtn" class="btn secondary small">
+          <i class="fas fa-copy"></i> Copy yt-dlp
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
