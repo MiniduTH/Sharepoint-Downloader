@@ -67,7 +67,7 @@ This extension is built using Chrome's **Manifest V3**, ensuring modern security
 
 _Screenshot of the popup interface showing captured manifest, commands, and options._
 
-![Screenshot](https://i.ibb.co/LD7ngk1c/Screenshot-2025-03-05-151334.png)
+![Screenshot](https://i.ibb.co/XZrNYPGL/Screenshot-2025-03-05-1513s34.png)
 
 ## Contributing
 
