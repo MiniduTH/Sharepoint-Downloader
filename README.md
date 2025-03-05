@@ -1,10 +1,10 @@
 # MTH Video Manifest Capture
 
-A Chrome extension that captures video manifest URLs (e.g., HLS `.m3u8`, MPEG-DASH `.mpd`, and SharePoint DASH manifests) from web pages, processes them, and generates FFmpeg and yt-dlp commands for downloading. It also includes a simple UI for customization and a button to download or open the manifest URL directly.
+A Chrome extension that captures video manifest URLs (e.g., HLS `.m3u8`, MPEG-DASH `.mpd`, and SharePoint DASH manifests) from web pages, processes them, and generates FFmpeg and yt-dlp commands for downloading. 
 
 ## Overview
 
-**MTH Video Manifest Capture** is designed to assist users in capturing and processing video streaming manifests, particularly for SharePoint, HLS, and DASH formats. The extension provides a user-friendly popup interface to view cleaned manifest URLs, select quality and format options, set custom filenames, and copy commands for FFmpeg and yt-dlp to download the video content. It also includes a **"Download Manifest"** button to open the cleaned manifest URL in a new tab or initiate a basic download.
+**MTH Video Manifest Capture** is designed to assist users in capturing and processing video streaming manifests, particularly for SharePoint, HLS, and DASH formats. The extension provides a user-friendly popup interface to view cleaned manifest URLs, select quality and format options, set custom filenames, and copy commands for FFmpeg and yt-dlp to download the video content. 
 
 This extension is built using Chrome's **Manifest V3**, ensuring modern security and performance standards.
 
