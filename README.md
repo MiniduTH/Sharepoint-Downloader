@@ -62,20 +62,12 @@ This extension is built using Chrome's **Manifest V3**, ensuring modern security
    - Click **"Copy FFmpeg"** or **"Copy yt-dlp"** to copy the respective commands to your clipboard.
    - Paste the commands into a terminal to download the video using FFmpeg or yt-dlp.
 
-6. **Download Manifest** *(optional)*
-   - Click **"Download Manifest"** to open the cleaned manifest URL in a new tab or download the manifest file (**note:** this downloads the manifest, not the full video; further processing is required using FFmpeg or yt-dlp).
 
 ## Screenshots
 
 _Screenshot of the popup interface showing captured manifest, commands, and options._
 
-![Screenshot](https://i.ibb.co/wZmMQ04P/Screenshot-2025-03-05-151334.png)
-
-## Known Limitations
-
-- **"Download Manifest" only saves the manifest file** (e.g., `.m3u8` or `.mpd`), not the full video. You need tools like **FFmpeg or yt-dlp** to process it.
-- **Authenticated manifest URLs** (e.g., SharePoint temp auth tokens) may require user login or additional configuration.
-- **Direct video downloads** without external tools are **not supported** due to browser security restrictions.
+![Screenshot](https://i.ibb.co/LD7ngk1c/Screenshot-2025-03-05-151334.png)
 
 ## Contributing
 
