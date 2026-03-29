@@ -24,11 +24,12 @@ Built using Chrome **Manifest V3**.
 
 - **Edge or Chrome** (Manifest V3, version 88+).
 - **yt-dlp** — `pip install yt-dlp` or download from [github.com/yt-dlp/yt-dlp](https://github.com/yt-dlp/yt-dlp).
-- **FFmpeg** *(optional)* — [ffmpeg.org](https://ffmpeg.org/).
+- **FFmpeg** _(optional)_ — [ffmpeg.org](https://ffmpeg.org/).
 
 ### Steps
 
 1. **Clone or download the repository**
+
    ```bash
    git clone https://github.com/MiniduTH/Sharepoint-Downloader.git
    ```
@@ -70,6 +71,7 @@ yt-dlp --cookies cookies.txt -f "bestvideo+bestaudio/best" --merge-output-format
 ```
 
 **Steps to export cookies.txt:**
+
 1. Install **Get cookies.txt LOCALLY** in Edge/Chrome.
 2. Navigate to `mysliit-my.sharepoint.com` (or your SharePoint domain).
 3. Click the extension icon → **Export** → save as `cookies.txt` in the same folder where you'll run yt-dlp.
@@ -108,6 +110,6 @@ This project is licensed under the **MIT License**. See the `LICENSE` file for d
 
 ## Contact
 
-- **Author:** Minidu Weerasinghe  
-- **GitHub:** [MiniduTH](https://github.com/MiniduTH)  
-- **LinkedIn:** [linkedin.com/in/minidu0th](https://linkedin.com/in/minidu0th)  
+- **Author:** Minidu Weerasinghe
+- **GitHub:** [MiniduTH](https://github.com/MiniduTH)
+- **LinkedIn:** [linkedin.com/in/minidu0th](https://linkedin.com/in/minidu0th)
