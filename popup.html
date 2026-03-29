@@ -22,6 +22,13 @@
           <button id="copyTabYtdlp" class="btn secondary small">
             Copy yt-dlp Command
           </button>
+          <button
+            id="copyTabYtdlpCookies"
+            class="btn secondary small"
+            style="display: none"
+          >
+            Copy yt-dlp (cookies.txt)
+          </button>
           <button id="copyTabUrl" class="btn toggle small">Copy URL</button>
         </div>
       </div>
@@ -37,6 +44,16 @@
             <option value="firefox">Firefox</option>
             <option value="brave">Brave</option>
           </select>
+          <div id="cookieWarn" class="warn" style="display: none">
+            &#9888; <strong>Close your browser first!</strong> Chromium-based
+            browsers lock the cookie DB while open — yt-dlp will fail to read
+            cookies. Close it, run the command, then reopen.<br />
+            <span
+              >Alternative: export cookies with
+              <em>Get cookies.txt LOCALLY</em> extension, save as
+              <code>cookies.txt</code>, then use the command below.</span
+            >
+          </div>
 
           <label>Quality:</label>
           <select id="quality" class="select">
@@ -104,12 +121,26 @@
         </div>
 
         <div class="manifest-section">
-          <label>yt-dlp:</label>
+          <label>yt-dlp (browser cookies):</label>
           <div class="text-container">
             <p id="ytdlpCommand" class="text">Select a captured URL above.</p>
           </div>
           <button id="copyYtdlpBtn" class="btn secondary small">
             Copy yt-dlp
+          </button>
+        </div>
+
+        <div
+          class="manifest-section"
+          id="ytdlpCookiesFileSection"
+          style="display: none"
+        >
+          <label>yt-dlp (cookies.txt file):</label>
+          <div class="text-container">
+            <p id="ytdlpCookiesFileCommand" class="text"></p>
+          </div>
+          <button id="copyYtdlpCookiesFileBtn" class="btn secondary small">
+            Copy yt-dlp (cookies.txt)
           </button>
         </div>
       </div>

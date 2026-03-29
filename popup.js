@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   const tabUrlDiv = document.getElementById("tabUrl");
   const copyTabYtdlp = document.getElementById("copyTabYtdlp");
+  const copyTabYtdlpCookies = document.getElementById("copyTabYtdlpCookies");
   const copyTabUrl = document.getElementById("copyTabUrl");
   const browserSelect = document.getElementById("browser");
   const qualitySelect = document.getElementById("quality");
@@ -12,6 +13,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const ytdlpCommandDiv = document.getElementById("ytdlpCommand");
   const copyFfmpegBtn = document.getElementById("copyFfmpegBtn");
   const copyYtdlpBtn = document.getElementById("copyYtdlpBtn");
+  const ytdlpCookiesFileSection = document.getElementById(
+    "ytdlpCookiesFileSection",
+  );
+  const ytdlpCookiesFileCommandDiv = document.getElementById(
+    "ytdlpCookiesFileCommand",
+  );
+  const copyYtdlpCookiesFileBtn = document.getElementById(
+    "copyYtdlpCookiesFileBtn",
+  );
+  const cookieWarn = document.getElementById("cookieWarn");
   const refreshBtn = document.getElementById("refresh");
   const clearAllBtn = document.getElementById("clearAll");
 
@@ -40,6 +51,19 @@ document.addEventListener("DOMContentLoaded", () => {
     return browserSelect.value;
   }
 
+  // Whether the selected browser uses a locked Chromium cookie DB
+  function isChromiumBrowser() {
+    return ["edge", "chrome", "brave"].includes(browser());
+  }
+
+  function updateCookieWarning() {
+    const show = isChromiumBrowser();
+    cookieWarn.style.display = show ? "" : "none";
+    ytdlpCookiesFileSection.style.display =
+      show && selectedManifest ? "" : "none";
+    copyTabYtdlpCookies.style.display = show ? "" : "none";
+  }
+
   // ── Command generators ───────────────────────────────────
 
   function ytdlpForPage(url) {
@@ -53,6 +77,17 @@ document.addEventListener("DOMContentLoaded", () => {
     return `yt-dlp --cookies-from-browser ${browser()} -f "${fSel}" --merge-output-format ${fmt} -o "${name}" "${url}"`;
   }
 
+  function ytdlpCookiesFileForPage(url) {
+    const q = qualitySelect.value;
+    const fmt = formatSelect.value;
+    const name = outName();
+    let fSel =
+      q === "best"
+        ? "bestvideo+bestaudio/best"
+        : `bestvideo[height<=?${q.replace("p", "")}]+bestaudio/best[height<=?${q.replace("p", "")}]`;
+    return `yt-dlp --cookies cookies.txt -f "${fSel}" --merge-output-format ${fmt} -o "${name}" "${url}"`;
+  }
+
   function ytdlpForManifest(url) {
     const q = qualitySelect.value;
     const fmt = formatSelect.value;
@@ -62,6 +97,17 @@ document.addEventListener("DOMContentLoaded", () => {
         ? "bestvideo+bestaudio/best"
         : `bestvideo[height<=?${q.replace("p", "")}]+bestaudio/best[height<=?${q.replace("p", "")}]`;
     return `yt-dlp --cookies-from-browser ${browser()} -f "${fSel}" --merge-output-format ${fmt} -o "${name}" "${url}"`;
+  }
+
+  function ytdlpCookiesFileForManifest(url) {
+    const q = qualitySelect.value;
+    const fmt = formatSelect.value;
+    const name = outName();
+    let fSel =
+      q === "best"
+        ? "bestvideo+bestaudio/best"
+        : `bestvideo[height<=?${q.replace("p", "")}]+bestaudio/best[height<=?${q.replace("p", "")}]`;
+    return `yt-dlp --cookies cookies.txt -f "${fSel}" --merge-output-format ${fmt} -o "${name}" "${url}"`;
   }
 
   function ffmpegForManifest(url, type) {
@@ -107,6 +153,15 @@ document.addEventListener("DOMContentLoaded", () => {
         ytdlpForPage(currentTabUrl),
         copyTabYtdlp,
         "Copy yt-dlp Command",
+      );
+  });
+
+  copyTabYtdlpCookies.addEventListener("click", () => {
+    if (currentTabUrl)
+      copyText(
+        ytdlpCookiesFileForPage(currentTabUrl),
+        copyTabYtdlpCookies,
+        "Copy yt-dlp (cookies.txt)",
       );
   });
 
@@ -166,6 +221,10 @@ document.addEventListener("DOMContentLoaded", () => {
       selectedManifest.type,
     );
     ytdlpCommandDiv.textContent = ytdlpForManifest(selectedManifest.cleanedUrl);
+    ytdlpCookiesFileCommandDiv.textContent = ytdlpCookiesFileForManifest(
+      selectedManifest.cleanedUrl,
+    );
+    updateCookieWarning();
   }
 
   // ── Buttons ──────────────────────────────────────────────
@@ -192,10 +251,24 @@ document.addEventListener("DOMContentLoaded", () => {
     copyText(ytdlpCommandDiv.textContent, copyYtdlpBtn, "Copy yt-dlp");
   });
 
+  copyYtdlpCookiesFileBtn.addEventListener("click", () => {
+    copyText(
+      ytdlpCookiesFileCommandDiv.textContent,
+      copyYtdlpCookiesFileBtn,
+      "Copy yt-dlp (cookies.txt)",
+    );
+  });
+
   // Recalculate commands when options change
   [qualitySelect, formatSelect, filenameInput, browserSelect].forEach((el) => {
-    el.addEventListener("change", updateCommands);
+    el.addEventListener("change", () => {
+      updateCommands();
+      updateCookieWarning();
+    });
   });
+
+  // Init cookie warning on load
+  updateCookieWarning();
 
   // Live-listen for new manifests
   chrome.runtime.onMessage.addListener((msg) => {
