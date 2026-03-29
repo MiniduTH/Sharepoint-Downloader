@@ -1,16 +1,10 @@
 {
   "manifest_version": 3,
-  "name": "MTH Video Manifest Capture",
-  "version": "1.0",
-  "description": "Captures video manifest URLs.",
-  "permissions": [
-    "webRequest",
-    "activeTab",
-    "storage"
-  ],
-  "host_permissions": [
-    "<all_urls>"
-  ],
+  "name": "SharePoint Video Downloader",
+  "version": "2.0",
+  "description": "Captures SharePoint/OneDrive video stream URLs and generates download commands.",
+  "permissions": ["webRequest", "activeTab", "tabs", "storage"],
+  "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "background.js"
   },

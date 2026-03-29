@@ -1,249 +1,279 @@
-document.addEventListener('DOMContentLoaded', () => {
-  // Get DOM elements with null checks
-  const manifestUrlDiv = document.getElementById('manifestUrl');
-  const ffmpegCommandDiv = document.getElementById('ffmpegCommand');
-  const ytdlpCommandDiv = document.getElementById('ytdlpCommand');
-  const refreshButton = document.getElementById('refresh');
-  const copyFffmpegBtn = document.getElementById('copyFffmpegBtn'); // Fixed typo
-  const copyYtdlpBtn = document.getElementById('copyYtdlpBtn');
-  const qualitySelect = document.getElementById('quality');
-  const formatSelect = document.getElementById('format');
-  const filenameInput = document.getElementById('filename');
-  const toggleUrlBtn = document.getElementById('toggleUrl');
-  const toggleFffmpegBtn = document.getElementById('toggleFffmpeg'); // Fixed typo
-  const toggleYtdlpBtn = document.getElementById('toggleYtdlp');
+document.addEventListener("DOMContentLoaded", () => {
+  const tabUrlDiv = document.getElementById("tabUrl");
+  const copyTabYtdlp = document.getElementById("copyTabYtdlp");
+  const copyTabYtdlpCookies = document.getElementById("copyTabYtdlpCookies");
+  const copyTabUrl = document.getElementById("copyTabUrl");
+  const browserSelect = document.getElementById("browser");
+  const qualitySelect = document.getElementById("quality");
+  const formatSelect = document.getElementById("format");
+  const filenameInput = document.getElementById("filename");
+  const manifestListDiv = document.getElementById("manifestList");
+  const commandsCard = document.getElementById("commandsCard");
+  const ffmpegCommandDiv = document.getElementById("ffmpegCommand");
+  const ytdlpCommandDiv = document.getElementById("ytdlpCommand");
+  const copyFfmpegBtn = document.getElementById("copyFfmpegBtn");
+  const copyYtdlpBtn = document.getElementById("copyYtdlpBtn");
+  const ytdlpCookiesFileSection = document.getElementById(
+    "ytdlpCookiesFileSection",
+  );
+  const ytdlpCookiesFileCommandDiv = document.getElementById(
+    "ytdlpCookiesFileCommand",
+  );
+  const copyYtdlpCookiesFileBtn = document.getElementById(
+    "copyYtdlpCookiesFileBtn",
+  );
+  const cookieWarn = document.getElementById("cookieWarn");
+  const refreshBtn = document.getElementById("refresh");
+  const clearAllBtn = document.getElementById("clearAll");
 
-  // Check if all elements exist
-  if (!manifestUrlDiv || !ffmpegCommandDiv || !ytdlpCommandDiv || !refreshButton || !copyFffmpegBtn || 
-      !copyYtdlpBtn || !qualitySelect || !formatSelect || !filenameInput || !toggleUrlBtn || 
-      !toggleFffmpegBtn || !toggleYtdlpBtn) {
-    console.error('One or more DOM elements not found in popup.html');
-    return;
+  let currentTabUrl = "";
+  let currentTabId = null;
+  let selectedManifest = null;
+
+  // ── Helpers ──────────────────────────────────────────────
+
+  function ts() {
+    const d = new Date();
+    return `video_${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+  }
+  function p(n) {
+    return String(n).padStart(2, "0");
   }
 
-  let currentManifestData = null;
-
-  // Function to generate a timestamp-based filename
-  function generateTimestampFilename() {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    const seconds = String(now.getSeconds()).padStart(2, '0');
-    return `video_${year}${month}${day}_${hours}${minutes}${seconds}`;
+  function outName() {
+    const v = filenameInput.value.trim();
+    const ext = formatSelect.value;
+    if (v) return v.includes(".") ? v : `${v}.${ext}`;
+    return `${ts()}.${ext}`;
   }
 
-  // Function to generate FFmpeg command
-  function generateFffmpegCommand(cleanedUrl, type, quality, format) {
-    const userFilename = filenameInput.value.trim();
-    const filename = userFilename || `${generateTimestampFilename()}.${format}`;
-    return `ffmpeg -i "${cleanedUrl}" -c copy ${filename}`;
+  function browser() {
+    return browserSelect.value;
   }
 
-  // Function to generate yt-dlp command
-  function generateYtdlpCommand(cleanedUrl, quality, format) {
-    const userFilename = filenameInput.value.trim();
-    const filename = userFilename || `${generateTimestampFilename()}.${format}`;
-    let qualityParam = '';
-    if (quality !== 'best') {
-      qualityParam = `--recode-video ${format} -f bestvideo[height<=?${quality.replace('p', '')}]+bestaudio/best[height<=?${quality.replace('p', '')}]`;
-    } else {
-      qualityParam = `--recode-video ${format} -f bestvideo+bestaudio/best`;
+  // Whether the selected browser uses a locked Chromium cookie DB
+  function isChromiumBrowser() {
+    return ["edge", "chrome", "brave"].includes(browser());
+  }
+
+  function updateCookieWarning() {
+    const show = isChromiumBrowser();
+    cookieWarn.style.display = show ? "" : "none";
+    ytdlpCookiesFileSection.style.display =
+      show && selectedManifest ? "" : "none";
+    copyTabYtdlpCookies.style.display = show ? "" : "none";
+  }
+
+  // ── Command generators ───────────────────────────────────
+
+  function ytdlpForPage(url) {
+    const q = qualitySelect.value;
+    const fmt = formatSelect.value;
+    const name = outName();
+    let fSel =
+      q === "best"
+        ? "bestvideo+bestaudio/best"
+        : `bestvideo[height<=?${q.replace("p", "")}]+bestaudio/best[height<=?${q.replace("p", "")}]`;
+    return `yt-dlp --cookies-from-browser ${browser()} -f "${fSel}" --merge-output-format ${fmt} -o "${name}" "${url}"`;
+  }
+
+  function ytdlpCookiesFileForPage(url) {
+    const q = qualitySelect.value;
+    const fmt = formatSelect.value;
+    const name = outName();
+    let fSel =
+      q === "best"
+        ? "bestvideo+bestaudio/best"
+        : `bestvideo[height<=?${q.replace("p", "")}]+bestaudio/best[height<=?${q.replace("p", "")}]`;
+    return `yt-dlp --cookies cookies.txt -f "${fSel}" --merge-output-format ${fmt} -o "${name}" "${url}"`;
+  }
+
+  function ytdlpForManifest(url) {
+    const q = qualitySelect.value;
+    const fmt = formatSelect.value;
+    const name = outName();
+    let fSel =
+      q === "best"
+        ? "bestvideo+bestaudio/best"
+        : `bestvideo[height<=?${q.replace("p", "")}]+bestaudio/best[height<=?${q.replace("p", "")}]`;
+    return `yt-dlp --cookies-from-browser ${browser()} -f "${fSel}" --merge-output-format ${fmt} -o "${name}" "${url}"`;
+  }
+
+  function ytdlpCookiesFileForManifest(url) {
+    const q = qualitySelect.value;
+    const fmt = formatSelect.value;
+    const name = outName();
+    let fSel =
+      q === "best"
+        ? "bestvideo+bestaudio/best"
+        : `bestvideo[height<=?${q.replace("p", "")}]+bestaudio/best[height<=?${q.replace("p", "")}]`;
+    return `yt-dlp --cookies cookies.txt -f "${fSel}" --merge-output-format ${fmt} -o "${name}" "${url}"`;
+  }
+
+  function ffmpegForManifest(url, type) {
+    const name = outName();
+    const referer = currentTabUrl
+      ? ` -headers "Referer: ${new URL(currentTabUrl).origin}/"`
+      : "";
+    if (type === "direct") {
+      return `ffmpeg${referer} -i "${url}" -c copy "${name}"`;
     }
-    return `yt-dlp "${cleanedUrl}" ${qualityParam} -o "${filename}"`;
+    return `ffmpeg -protocol_whitelist file,http,https,tcp,tls${referer} -i "${url}" -c copy "${name}"`;
   }
 
-  function updateUI(data) {
-    if (data) {
-      currentManifestData = data;
-      if (manifestUrlDiv) manifestUrlDiv.textContent = data.cleanedUrl; // Add null check
-      const ffmpegCommand = generateFffmpegCommand(
-        data.cleanedUrl,
-        data.type,
-        qualitySelect.value,
-        formatSelect.value
-      );
-      const ytdlpCommand = generateYtdlpCommand(
-        data.cleanedUrl,
-        qualitySelect.value,
-        formatSelect.value
-      );
-      if (ffmpegCommandDiv) ffmpegCommandDiv.textContent = ffmpegCommand; // Add null check
-      if (ytdlpCommandDiv) ytdlpCommandDiv.textContent = ytdlpCommand; // Add null check
-      if (filenameInput && !filenameInput.value.trim()) {
-        filenameInput.placeholder = generateTimestampFilename();
-      }
-    } else {
-      if (manifestUrlDiv) manifestUrlDiv.textContent = 'No manifest captured yet.';
-      if (ffmpegCommandDiv) ffmpegCommandDiv.textContent = 'FFmpeg command will appear here.';
-      if (ytdlpCommandDiv) ytdlpCommandDiv.textContent = 'yt-dlp command will appear here.';
-      if (filenameInput) {
-        filenameInput.value = '';
-        filenameInput.placeholder = 'video_YYYYMMDD_HHMMSS';
-      }
-    }
-    // Reset toggle states with null checks
-    if (manifestUrlDiv) manifestUrlDiv.classList.remove('expanded');
-    if (ffmpegCommandDiv) ffmpegCommandDiv.classList.remove('expanded');
-    if (ytdlpCommandDiv) ytdlpCommandDiv.classList.remove('expanded');
-    if (toggleUrlBtn) toggleUrlBtn.textContent = 'Expand';
-    if (toggleFffmpegBtn) toggleFffmpegBtn.textContent = 'Expand';
-    if (toggleYtdlpBtn) toggleYtdlpBtn.textContent = 'Expand';
-  }
+  // ── Copy helper ──────────────────────────────────────────
 
-  function fetchLastManifest() {
-    try {
-      chrome.runtime.sendMessage({ type: 'getLastManifest' }, (response) => {
-        if (chrome.runtime.lastError) {
-          console.error('Runtime error:', chrome.runtime.lastError.message);
-          updateUI(null);
-          return;
-        }
-        updateUI(response.data);
+  function copyText(text, btn, defaultLabel) {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        btn.textContent = "Copied!";
+        setTimeout(() => (btn.textContent = defaultLabel), 1500);
+      })
+      .catch(() => {
+        btn.textContent = "Copy Failed";
+        setTimeout(() => (btn.textContent = defaultLabel), 1500);
       });
-    } catch (error) {
-      console.error('Error sending message:', error);
-      updateUI(null);
-    }
   }
 
-  // Initial fetch
-  fetchLastManifest();
+  // ── Tab URL section ──────────────────────────────────────
 
-  // Listen for new manifests
-  chrome.runtime.onMessage.addListener((message) => {
-    if (message.type === 'manifestDetected') {
-      updateUI(message.data);
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (tabs[0]) {
+      currentTabUrl = tabs[0].url;
+      currentTabId = tabs[0].id;
+      tabUrlDiv.textContent = currentTabUrl;
+      loadManifests();
     }
   });
 
-  // Add event listeners with null checks
-  if (refreshButton) {
-    refreshButton.addEventListener('click', fetchLastManifest);
+  copyTabYtdlp.addEventListener("click", () => {
+    if (currentTabUrl)
+      copyText(
+        ytdlpForPage(currentTabUrl),
+        copyTabYtdlp,
+        "Copy yt-dlp Command",
+      );
+  });
+
+  copyTabYtdlpCookies.addEventListener("click", () => {
+    if (currentTabUrl)
+      copyText(
+        ytdlpCookiesFileForPage(currentTabUrl),
+        copyTabYtdlpCookies,
+        "Copy yt-dlp (cookies.txt)",
+      );
+  });
+
+  copyTabUrl.addEventListener("click", () => {
+    if (currentTabUrl) copyText(currentTabUrl, copyTabUrl, "Copy URL");
+  });
+
+  // ── Manifest list ────────────────────────────────────────
+
+  function loadManifests() {
+    if (currentTabId == null) return;
+    chrome.runtime.sendMessage(
+      { type: "getManifests", tabId: currentTabId },
+      (resp) => {
+        if (chrome.runtime.lastError || !resp) {
+          renderManifests([]);
+          return;
+        }
+        renderManifests(resp.manifests || []);
+      },
+    );
   }
 
-  // Update commands on quality/format/filename change with null checks
-  if (qualitySelect) {
-    qualitySelect.addEventListener('change', () => {
-      if (currentManifestData) {
-        const ffmpegCommand = generateFffmpegCommand(
-          currentManifestData.cleanedUrl,
-          currentManifestData.type,
-          qualitySelect.value,
-          formatSelect.value
-        );
-        const ytdlpCommand = generateYtdlpCommand(
-          currentManifestData.cleanedUrl,
-          qualitySelect.value,
-          formatSelect.value
-        );
-        if (ffmpegCommandDiv) ffmpegCommandDiv.textContent = ffmpegCommand;
-        if (ytdlpCommandDiv) ytdlpCommandDiv.textContent = ytdlpCommand;
-      }
+  function renderManifests(list) {
+    manifestListDiv.innerHTML = "";
+    if (list.length === 0) {
+      manifestListDiv.innerHTML =
+        '<p class="empty-msg">Play a video on SharePoint to capture stream URLs.</p>';
+      return;
+    }
+    list.forEach((m, i) => {
+      const row = document.createElement("div");
+      row.className =
+        "manifest-row" +
+        (selectedManifest && selectedManifest.cleanedUrl === m.cleanedUrl
+          ? " selected"
+          : "");
+      row.innerHTML = `<span class="badge ${m.type}">${m.label || m.type.toUpperCase()}</span>
+        <span class="manifest-url" title="${m.cleanedUrl}">${m.cleanedUrl}</span>`;
+      row.addEventListener("click", () => selectManifest(m));
+      manifestListDiv.appendChild(row);
     });
   }
 
-  if (formatSelect) {
-    formatSelect.addEventListener('change', () => {
-      if (currentManifestData) {
-        const ffmpegCommand = generateFffmpegCommand(
-          currentManifestData.cleanedUrl,
-          currentManifestData.type,
-          qualitySelect.value,
-          formatSelect.value
-        );
-        const ytdlpCommand = generateYtdlpCommand(
-          currentManifestData.cleanedUrl,
-          qualitySelect.value,
-          formatSelect.value
-        );
-        if (ffmpegCommandDiv) ffmpegCommandDiv.textContent = ffmpegCommand;
-        if (ytdlpCommandDiv) ytdlpCommandDiv.textContent = ytdlpCommand;
-      }
-    });
+  function selectManifest(m) {
+    selectedManifest = m;
+    commandsCard.style.display = "";
+    updateCommands();
+    // Re-render to highlight selection
+    loadManifests();
   }
 
-  if (filenameInput) {
-    filenameInput.addEventListener('change', () => {
-      if (currentManifestData) {
-        const ffmpegCommand = generateFffmpegCommand(
-          currentManifestData.cleanedUrl,
-          currentManifestData.type,
-          qualitySelect.value,
-          formatSelect.value
-        );
-        const ytdlpCommand = generateYtdlpCommand(
-          currentManifestData.cleanedUrl,
-          qualitySelect.value,
-          formatSelect.value
-        );
-        if (ffmpegCommandDiv) ffmpegCommandDiv.textContent = ffmpegCommand;
-        if (ytdlpCommandDiv) ytdlpCommandDiv.textContent = ytdlpCommand;
-      }
-    });
+  function updateCommands() {
+    if (!selectedManifest) return;
+    ffmpegCommandDiv.textContent = ffmpegForManifest(
+      selectedManifest.cleanedUrl,
+      selectedManifest.type,
+    );
+    ytdlpCommandDiv.textContent = ytdlpForManifest(selectedManifest.cleanedUrl);
+    ytdlpCookiesFileCommandDiv.textContent = ytdlpCookiesFileForManifest(
+      selectedManifest.cleanedUrl,
+    );
+    updateCookieWarning();
   }
 
-  // Copy FFmpeg button with null check
-  if (copyFffmpegBtn) {
-    copyFffmpegBtn.addEventListener('click', () => {
-      if (ffmpegCommandDiv) {
-        const commandText = ffmpegCommandDiv.textContent;
-        navigator.clipboard.writeText(commandText).then(() => {
-          copyFffmpegBtn.textContent = 'Copied!';
-          setTimeout(() => copyFffmpegBtn.textContent = 'Copy FFmpeg', 2000);
-        }).catch((err) => {
-          console.error('Failed to copy FFmpeg:', err);
-          copyFffmpegBtn.textContent = 'Copy Failed';
-        });
-      }
-    });
-  }
+  // ── Buttons ──────────────────────────────────────────────
 
-  // Copy yt-dlp button with null check
-  if (copyYtdlpBtn) {
-    copyYtdlpBtn.addEventListener('click', () => {
-      if (ytdlpCommandDiv) {
-        const commandText = ytdlpCommandDiv.textContent;
-        navigator.clipboard.writeText(commandText).then(() => {
-          copyYtdlpBtn.textContent = 'Copied!';
-          setTimeout(() => copyYtdlpBtn.textContent = 'Copy yt-dlp', 2000);
-        }).catch((err) => {
-          console.error('Failed to copy yt-dlp:', err);
-          copyYtdlpBtn.textContent = 'Copy Failed';
-        });
-      }
-    });
-  }
+  refreshBtn.addEventListener("click", loadManifests);
 
-  // Toggle URL visibility with null check
-  if (toggleUrlBtn) {
-    toggleUrlBtn.addEventListener('click', () => {
-      if (manifestUrlDiv) {
-        manifestUrlDiv.classList.toggle('expanded');
-        toggleUrlBtn.textContent = manifestUrlDiv.classList.contains('expanded') ? 'Collapse' : 'Expand';
-      }
-    });
-  }
+  clearAllBtn.addEventListener("click", () => {
+    if (currentTabId == null) return;
+    chrome.runtime.sendMessage(
+      { type: "clearManifests", tabId: currentTabId },
+      () => {
+        selectedManifest = null;
+        commandsCard.style.display = "none";
+        loadManifests();
+      },
+    );
+  });
 
-  // Toggle FFmpeg visibility with null check
-  if (toggleFffmpegBtn) {
-    toggleFffmpegBtn.addEventListener('click', () => {
-      if (ffmpegCommandDiv) {
-        ffmpegCommandDiv.classList.toggle('expanded');
-        toggleFffmpegBtn.textContent = ffmpegCommandDiv.classList.contains('expanded') ? 'Collapse' : 'Expand';
-      }
-    });
-  }
+  copyFfmpegBtn.addEventListener("click", () => {
+    copyText(ffmpegCommandDiv.textContent, copyFfmpegBtn, "Copy FFmpeg");
+  });
 
-  // Toggle yt-dlp visibility with null check
-  if (toggleYtdlpBtn) {
-    toggleYtdlpBtn.addEventListener('click', () => {
-      if (ytdlpCommandDiv) {
-        ytdlpCommandDiv.classList.toggle('expanded');
-        toggleYtdlpBtn.textContent = ytdlpCommandDiv.classList.contains('expanded') ? 'Collapse' : 'Expand';
-      }
+  copyYtdlpBtn.addEventListener("click", () => {
+    copyText(ytdlpCommandDiv.textContent, copyYtdlpBtn, "Copy yt-dlp");
+  });
+
+  copyYtdlpCookiesFileBtn.addEventListener("click", () => {
+    copyText(
+      ytdlpCookiesFileCommandDiv.textContent,
+      copyYtdlpCookiesFileBtn,
+      "Copy yt-dlp (cookies.txt)",
+    );
+  });
+
+  // Recalculate commands when options change
+  [qualitySelect, formatSelect, filenameInput, browserSelect].forEach((el) => {
+    el.addEventListener("change", () => {
+      updateCommands();
+      updateCookieWarning();
     });
-  }
+  });
+
+  // Init cookie warning on load
+  updateCookieWarning();
+
+  // Live-listen for new manifests
+  chrome.runtime.onMessage.addListener((msg) => {
+    if (msg.type === "manifestDetected" && msg.data.tabId === currentTabId) {
+      loadManifests();
+    }
+  });
 });

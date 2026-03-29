@@ -1,73 +1,151 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-  <title>Video Manifest Capture</title>
-  <link rel="stylesheet" href="popup.css">
-  <!-- Optional: Add Font Awesome for icons (uncomment if using) -->
-  <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> -->
-</head>
-<body>
-  <div class="container">
-    <h1 class="title">MTH Video Manifest Capture</h1>
-    
-    
-    <div class="card">
-      <h2>Manifest Details</h2>
-      <div class="manifest-section">
-        <label>Cleaned URL:</label>
+  <head>
+    <title>SharePoint Video Downloader</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="title">SharePoint Video Downloader</h1>
+
+      <!-- Current Tab URL — best approach for yt-dlp -->
+      <div class="card">
+        <h2>Current Page (Recommended)</h2>
+        <p class="hint">
+          Use the current SharePoint page URL with yt-dlp + browser cookies.
+          This is the easiest method.
+        </p>
         <div class="text-container">
-          <p id="manifestUrl" class="text">No manifest captured yet.</p>
+          <p id="tabUrl" class="text">Loading…</p>
         </div>
-        <button id="toggleUrl" class="btn toggle">Expand</button>
-      </div>
-      
-      <div class="options-section">
-        <label>Quality:</label>
-        <select id="quality" class="select">
-          <option value="best">Best</option>
-          <option value="1080p">1080p</option>
-          <option value="720p">720p</option>
-          <option value="480p">480p</option>
-        </select>
-        
-        <label>Format:</label>
-        <select id="format" class="select">
-          <option value="mp4">MP4</option>
-          <option value="mkv">MKV</option>
-          <option value="ts">TS</option>
-        </select>
-        
-        <label>Output Filename:</label>
-        <input id="filename" type="text" class="input" placeholder="video_YYYYMMDD_HHMMSS">
-        <button id="refresh" class="btn primary">
-          <i class="fas fa-refresh"></i> Save Settings
-        </button>
+        <div class="btn-row">
+          <button id="copyTabYtdlp" class="btn secondary small">
+            Copy yt-dlp Command
+          </button>
+          <button
+            id="copyTabYtdlpCookies"
+            class="btn secondary small"
+            style="display: none"
+          >
+            Copy yt-dlp (cookies.txt)
+          </button>
+          <button id="copyTabUrl" class="btn toggle small">Copy URL</button>
+        </div>
       </div>
 
-      <div class="manifest-section">
-        <label>FFmpeg Command:</label>
-        <div class="text-container">
-          <p id="ffmpegCommand" class="text">FFmpeg command will appear here.</p>
+      <!-- Options -->
+      <div class="card">
+        <h2>Options</h2>
+        <div class="options-section">
+          <label>Browser:</label>
+          <select id="browser" class="select">
+            <option value="edge">Edge</option>
+            <option value="chrome">Chrome</option>
+            <option value="firefox">Firefox</option>
+            <option value="brave">Brave</option>
+          </select>
+          <div id="cookieWarn" class="warn" style="display: none">
+            &#9888; <strong>Close your browser first!</strong> Chromium-based
+            browsers lock the cookie DB while open — yt-dlp will fail to read
+            cookies. Close it, run the command, then reopen.<br />
+            <span
+              >Alternative: export cookies with
+              <em>Get cookies.txt LOCALLY</em> extension, save as
+              <code>cookies.txt</code>, then use the command below.</span
+            >
+          </div>
+
+          <label>Quality:</label>
+          <select id="quality" class="select">
+            <option value="best">Best</option>
+            <option value="1080p">1080p</option>
+            <option value="720p">720p</option>
+            <option value="480p">480p</option>
+          </select>
+
+          <label>Format:</label>
+          <select id="format" class="select">
+            <option value="mp4">MP4</option>
+            <option value="mkv">MKV</option>
+            <option value="ts">TS</option>
+          </select>
+
+          <label>Filename:</label>
+          <input
+            id="filename"
+            type="text"
+            class="input"
+            placeholder="auto (timestamp)"
+          />
         </div>
-        <button id="toggleFffmpeg" class="btn toggle">Expand</button>
-        <button id="copyFffmpegBtn" class="btn secondary small">
-          <i class="fas fa-copy"></i> Copy FFmpeg
-        </button>
       </div>
 
-      <div class="manifest-section">
-        <label>yt-dlp Command:</label>
-        <div class="text-container">
-          <p id="ytdlpCommand" class="text">yt-dlp command will appear here.</p>
+      <!-- Captured manifests -->
+      <div class="card">
+        <h2>
+          Captured Stream URLs
+          <button
+            id="refresh"
+            class="btn toggle small"
+            style="display: inline; margin-left: 8px; padding: 3px 8px"
+          >
+            Refresh
+          </button>
+          <button
+            id="clearAll"
+            class="btn toggle small"
+            style="display: inline; margin-left: 4px; padding: 3px 8px"
+          >
+            Clear
+          </button>
+        </h2>
+        <div id="manifestList" class="manifest-list">
+          <p class="empty-msg">
+            Play a video on SharePoint to capture stream URLs.
+          </p>
         </div>
-        <button id="toggleYtdlp" class="btn toggle">Expand</button>
-        <button id="copyYtdlpBtn" class="btn secondary small">
-          <i class="fas fa-copy"></i> Copy yt-dlp
-        </button>
+      </div>
+
+      <!-- Selected manifest commands -->
+      <div class="card" id="commandsCard" style="display: none">
+        <h2>Download Commands</h2>
+
+        <div class="manifest-section">
+          <label>FFmpeg:</label>
+          <div class="text-container">
+            <p id="ffmpegCommand" class="text">Select a captured URL above.</p>
+          </div>
+          <button id="copyFfmpegBtn" class="btn secondary small">
+            Copy FFmpeg
+          </button>
+        </div>
+
+        <div class="manifest-section">
+          <label>yt-dlp (browser cookies):</label>
+          <div class="text-container">
+            <p id="ytdlpCommand" class="text">Select a captured URL above.</p>
+          </div>
+          <button id="copyYtdlpBtn" class="btn secondary small">
+            Copy yt-dlp
+          </button>
+        </div>
+
+        <div
+          class="manifest-section"
+          id="ytdlpCookiesFileSection"
+          style="display: none"
+        >
+          <label>yt-dlp (cookies.txt file):</label>
+          <div class="text-container">
+            <p id="ytdlpCookiesFileCommand" class="text"></p>
+          </div>
+          <button id="copyYtdlpCookiesFileBtn" class="btn secondary small">
+            Copy yt-dlp (cookies.txt)
+          </button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <script src="popup.js"></script>
-</body>
+    <script src="popup.js"></script>
+  </body>
 </html>

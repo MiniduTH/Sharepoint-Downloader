@@ -1,73 +1,89 @@
-# MTH Video Manifest Capture
+# SharePoint Video Downloader
 
-A Chrome extension that captures video manifest URLs (e.g., HLS `.m3u8`, MPEG-DASH `.mpd`, and SharePoint DASH manifests) from web pages, processes them, and generates FFmpeg and yt-dlp commands for downloading. 
+A Chrome/Edge extension that captures SharePoint/OneDrive Stream video URLs and generates ready-to-run yt-dlp and FFmpeg download commands.
 
 ## Overview
 
-**MTH Video Manifest Capture** is designed to assist users in capturing and processing video streaming manifests, particularly for SharePoint, HLS, and DASH formats. The extension provides a user-friendly popup interface to view cleaned manifest URLs, select quality and format options, set custom filenames, and copy commands for FFmpeg and yt-dlp to download the video content. 
+**SharePoint Video Downloader** detects video manifests and stream URLs on SharePoint/OneDrive pages and generates download commands with the correct authentication flags. It supports both `--cookies-from-browser` (browser must be closed) and `--cookies cookies.txt` (browser can stay open) workflows.
 
-This extension is built using Chrome's **Manifest V3**, ensuring modern security and performance standards.
+Built using Chrome **Manifest V3**.
 
 ## Features
 
-- **Captures video manifest URLs** (`.m3u8`, `.mpd`, and SharePoint `/transform/videomanifest` with `format=dash`).
-- **Cleans URLs** by removing unnecessary parameters (e.g., after `format=dash`).
-- **Generates customizable FFmpeg and yt-dlp commands** with options for quality (Best, 1080p, 720p, 480p) and format (MP4, MKV, TS).
-- **Allows custom output filenames** or uses a timestamp-based default (e.g., `video_YYYYMMDD_HHMMSS`).
-- **"Download Manifest" button** to open the cleaned manifest URL in a new tab or initiate a basic download of the manifest file.
-- **Toggle buttons** to expand/collapse long URLs and commands for better readability.
-- **Copy buttons** for FFmpeg and yt-dlp commands to easily paste into a terminal.
+- **Detects SharePoint stream URLs** — `/transform/videomanifest` (DASH/HLS), `mediap.svc.ms` proxy manifests, `oneDrive.transcode` segment endpoints, and direct `download.aspx` links.
+- **Per-tab URL capture** — stores up to 20 URLs per tab, deduplicated.
+- **Current Page shortcut** — one-click copy of a yt-dlp command using the active SharePoint tab URL (uses the built-in SharePoint extractor).
+- **Two cookie modes** — `--cookies-from-browser <browser>` and `--cookies cookies.txt`.
+- **Cookie lock warning** — shows a warning when Edge/Chrome/Brave is selected, since Chromium locks the cookie database while the browser is open.
+- **Customizable output** — quality (Best, 1080p, 720p, 480p), format (MP4, MKV, TS), and custom filename.
+- **Copy buttons** for all commands.
 
 ## Installation
 
 ### Prerequisites
 
-- Google Chrome or Chromium browser (**Manifest V3 compatible, version 88 or later**).
-- FFmpeg and yt-dlp installed on your system (**optional, for running the generated commands**).
+- **Edge or Chrome** (Manifest V3, version 88+).
+- **yt-dlp** — `pip install yt-dlp` or download from [github.com/yt-dlp/yt-dlp](https://github.com/yt-dlp/yt-dlp).
+- **FFmpeg** _(optional)_ — [ffmpeg.org](https://ffmpeg.org/).
 
 ### Steps
 
-1. **Clone or Download the Repository**
+1. **Clone or download the repository**
+
    ```bash
    git clone https://github.com/MiniduTH/Sharepoint-Downloader.git
    ```
-   Or download the ZIP file and extract it.
 
-2. **Load the Extension in Chrome**
-   - Open Chrome and navigate to `chrome://extensions/`.
-   - Enable **"Developer mode"** in the top-right corner.
-   - Click **"Load unpacked"** and select the `Sharepoint-Downloader` folder.
-
-3. **Install Dependencies** *(optional, for using generated commands)*
-   - **FFmpeg:** Install via your package manager (e.g., `sudo apt install ffmpeg` on Ubuntu) or download from [ffmpeg.org](https://ffmpeg.org/).
-   - **yt-dlp:** Install via `pip install yt-dlp` or download from [yt-dlp.org](https://yt-dlp.org/).
+2. **Load the extension**
+   - Edge: `edge://extensions/` → Enable **Developer mode** → **Load unpacked** → select the folder.
+   - Chrome: `chrome://extensions/` → same steps.
 
 ## Usage
 
-1. **Open a Web Page with Video Manifests**
-   - Visit a website streaming video content (e.g., SharePoint, HLS, or DASH streams).
+### Recommended: Current Page method
 
-2. **Activate the Extension**
-   - Click the **"MTH Video Manifest Capture"** icon in the Chrome toolbar.
+1. Open the SharePoint video page in your browser.
+2. Click the extension icon.
+3. In the **Current Page** card, click **Copy yt-dlp (cookies.txt)** (if Edge is open) or **Copy yt-dlp Command** (if you'll close the browser first).
+4. Paste into a terminal and run.
 
-3. **Capture Manifests**
-   - The extension automatically detects and captures video manifest URLs (`.m3u8`, `.mpd`, or SharePoint DASH manifests).
-   - The cleaned URL, FFmpeg command, and yt-dlp command will appear in the popup.
+### Cookie authentication — two options
 
-4. **Customize Options**
-   - Use the dropdowns to select video quality (**Best, 1080p, 720p, 480p**) and format (**MP4, MKV, TS**).
-   - Enter a custom output filename, or leave it blank to use the timestamp-based default (e.g., `video_20250305_143022.mp4`).
+#### Option A: `--cookies-from-browser` (no extra setup, but browser must be closed)
 
-5. **Copy Commands**
-   - Click **"Copy FFmpeg"** or **"Copy yt-dlp"** to copy the respective commands to your clipboard.
-   - Paste the commands into a terminal to download the video using FFmpeg or yt-dlp.
+Chromium-based browsers (Edge, Chrome, Brave) **lock the cookie database while running**. You must close the browser before running the command.
 
+```bash
+# 1. Close Edge/Chrome completely
+# 2. Run:
+yt-dlp --cookies-from-browser edge -f "bestvideo+bestaudio/best" --merge-output-format mp4 -o "lecture.mp4" "https://mysliit-my.sharepoint.com/..."
+# 3. Reopen the browser
+```
 
-## Screenshots
+Firefox does **not** lock its cookie database, so `--cookies-from-browser firefox` works while the browser is open.
 
-_Screenshot of the popup interface showing captured manifest, commands, and options._
+#### Option B: `--cookies cookies.txt` ✅ Confirmed working
 
-![Screenshot](https://i.ibb.co/XZrNYPGL/Screenshot-2025-03-05-1513s34.png)
+Export cookies while the browser is open using the **[Get cookies.txt LOCALLY](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc)** extension, then run:
+
+```bash
+yt-dlp --cookies cookies.txt -f "bestvideo+bestaudio/best" --merge-output-format mp4 -o "lecture.mp4" "https://mysliit-my.sharepoint.com/..."
+```
+
+**Steps to export cookies.txt:**
+
+1. Install **Get cookies.txt LOCALLY** in Edge/Chrome.
+2. Navigate to `mysliit-my.sharepoint.com` (or your SharePoint domain).
+3. Click the extension icon → **Export** → save as `cookies.txt` in the same folder where you'll run yt-dlp.
+4. Use the **Copy yt-dlp (cookies.txt)** button in this extension to get the command.
+
+### Captured Stream URLs
+
+The extension also intercepts manifest URLs as you play the video:
+
+1. Play the video on SharePoint.
+2. Open the extension popup — captured URLs appear in the **Captured Stream URLs** list.
+3. Click a URL to generate FFmpeg and yt-dlp commands for it in the **Download Commands** card.
 
 ## Contributing
 
@@ -94,6 +110,6 @@ This project is licensed under the **MIT License**. See the `LICENSE` file for d
 
 ## Contact
 
-- **Author:** Minidu Weerasinghe  
-- **GitHub:** [MiniduTH](https://github.com/MiniduTH)  
-- **LinkedIn:** [linkedin.com/in/minidu0th](https://linkedin.com/in/minidu0th)  
+- **Author:** Minidu Weerasinghe
+- **GitHub:** [MiniduTH](https://github.com/MiniduTH)
+- **LinkedIn:** [linkedin.com/in/minidu0th](https://linkedin.com/in/minidu0th)
