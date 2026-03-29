@@ -56,7 +56,7 @@ Chromium-based browsers (Edge, Chrome, Brave) **lock the cookie database while r
 ```bash
 # 1. Close Edge/Chrome completely
 # 2. Run:
-yt-dlp --cookies-from-browser edge -f "bestvideo+bestaudio/best" --merge-output-format mp4 -o "lecture.mp4" "https://mysliit-my.sharepoint.com/..."
+yt-dlp --cookies-from-browser edge -f "bestvideo+bestaudio/best" --merge-output-format mp4 -o "lecture.mp4" "https://sitename.com/..."
 # 3. Reopen the browser
 ```
 
@@ -67,13 +67,13 @@ Firefox does **not** lock its cookie database, so `--cookies-from-browser firefo
 Export cookies while the browser is open using the **[Get cookies.txt LOCALLY](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc)** extension, then run:
 
 ```bash
-yt-dlp --cookies cookies.txt -f "bestvideo+bestaudio/best" --merge-output-format mp4 -o "lecture.mp4" "https://mysliit-my.sharepoint.com/..."
+yt-dlp --cookies cookies.txt -f "bestvideo+bestaudio/best" --merge-output-format mp4 -o "lecture.mp4" "https://sitename.com/..."
 ```
 
 **Steps to export cookies.txt:**
 
 1. Install **Get cookies.txt LOCALLY** in Edge/Chrome.
-2. Navigate to `mysliit-my.sharepoint.com` (or your SharePoint domain).
+2. Navigate to `sitename.com` (or your SharePoint domain).
 3. Click the extension icon → **Export** → save as `cookies.txt` in the same folder where you'll run yt-dlp.
 4. Use the **Copy yt-dlp (cookies.txt)** button in this extension to get the command.
 
